@@ -1,46 +1,19 @@
-# JSON Q&A Bot (Streamlit + Hugging Face LLM)
+# NEI • Q&A para Tabelas e JSON (Streamlit + Hugging Face LLM)
+- Busca TF-IDF + reforço por número/unidade
+- Regras de pesquisa (JSON): filtros, boosts, expansão de consulta
+- Regra EASY SERVO (PULSO E DIREÇÃO): A/B + D..AC com "SIM" → retorna rótulos da linha 2
+- LLM com fallback (text_generation → chat_completion)
 
-App no Streamlit que responde perguntas sobre um **arquivo JSON**, com duas opções de resposta:
-1) Heurística local (TF‑IDF)
-2) **LLM via Hugging Face Inference API** (recomendado)
+## Streamlit Cloud
+1) Suba `app.py`, `requirements.txt`, `README.md` para um repositório.  
+2) Conecte no Community Cloud e selecione `app.py`.  
+3) (Opcional) Secret `HF_TOKEN`.  
 
-## Passos para publicar no streamlit.io
-
-1. Crie um repositório no GitHub com estes arquivos: `app.py`, `requirements.txt`, `sample.json` e `README.md`.
-2. No Streamlit Community Cloud, conecte o repositório e selecione o arquivo `app.py`.
-3. **(Opcional LLM)** Adicione um **Secret** chamado `HF_TOKEN` com seu token do Hugging Face:
-   - Vá em *Settings → Secrets*, cole:
-     ```
-     HF_TOKEN = "hf_xxx_seu_token_aqui"
-     ```
-4. Faça o deploy. No app, ative **"Usar LLM"** na barra lateral e escolha o `Model ID` (ex.: `meta-llama/Meta-Llama-3.1-8B-Instruct`).
-
-> Dica: alguns modelos gratuitos podem estar ocupados/limitar tokens. Se ocorrer erro/timeout, troque de modelo ou reduza `max_new_tokens`.
-
-## Como funciona
-
-- O JSON é "achatado" em pares `path -> valor`.
-- Uma busca TF‑IDF seleciona os trechos mais relevantes ao que foi perguntado.
-- O contexto é enviado ao LLM com uma instrução para responder **apenas com base nesses dados**.
-- Se o LLM estiver desativado ou sem token, a resposta heurística lista os caminhos e valores relevantes.
-
-## Exemplos de modelos (Hugging Face)
-
-- `meta-llama/Meta-Llama-3.1-8B-Instruct`
-- `Qwen/Qwen2.5-7B-Instruct`
-- `mistralai/Mixtral-8x7B-Instruct-v0.1`
-- `google/gemma-2-9b-it`
-
-## Rodar localmente
-
-```bash
-pip install -r requirements.txt
-export HF_TOKEN=hf_xxx  # ou configure no app
-streamlit run app.py
-```
-
-## Segurança
-
-- O JSON é processado apenas em memória do app.
-- O LLM recebe apenas os trechos relevantes, não o arquivo completo.
-- Não armazena o token; usa sessão/Secrets do Streamlit.
+## Dica de regras
+```json
+{
+  "numeric_filters": [{"column": "Torque (Nm)", "op": ">=", "value": 20}],
+  "must_contain_terms": ["conjunto"],
+  "boosts": [{"columns": ["produtos","regra"], "contains": ["conjunto","kit"], "weight": 0.4}],
+  "query_expand": {"20 nm": ["20 n.m","20nm","20 newton metro"]}
+}
